@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSK Reporter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1d201f;
+    --panel: #1d201f;
+    --border: #3a3f3d;
+    --text: #e8ecea;
+    --muted: #b8c0bc;
+    --green: #2ecc5a;
+    --link: #4aa8ff;
+    --map-bg: #0d1520;
+    --grid: #4a504d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { display: flex; align-items: center; gap: 32px; padding: 24px 24px 20px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-weight: 400; font-size: 36px; letter-spacing: .3px; }
+  nav { display: flex; gap: 28px; flex-wrap: wrap; }
+  nav a { color: var(--text); font-weight: 600; font-size: 17px; padding-bottom: 6px; border-bottom: 3px solid transparent; }
+  nav a.active { color: var(--green); border-color: var(--green); }
+  nav a:hover { text-decoration: none; color: var(--green); }
+
+  main { padding: 0 24px 32px; display: grid; gap: 22px; }
+  .card { border: 1px solid var(--border); border-radius: 6px; padding: 22px 24px; background: var(--panel); min-width: 0; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .card-head h2 { margin: 0; font-size: 16px; font-weight: 500; letter-spacing: .4px; }
+  .range { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 14px; }
+  .kebab { color: var(--text); font-size: 20px; line-height: 1; cursor: default; }
+
+  .row-top { display: grid; grid-template-columns: 2fr 1fr; gap: 22px; }
+  .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+
+  /* Map placeholder */
+  .map { position: relative; background: var(--map-bg); border-radius: 4px; min-height: 420px; overflow: hidden; }
+  .map svg { width: 100%; height: 100%; position: absolute; inset: 0; }
+  .map .ph { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #5d7188; font-size: 14px; letter-spacing: .5px; }
+  .legend { position: absolute; left: 12px; bottom: 12px; background: #1b2430; border: 1px solid #2e3a48; border-radius: 4px; padding: 6px 8px; font-size: 10px; display: grid; gap: 3px; }
+  .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-right: 5px; }
+  .zoom { position: absolute; left: 12px; top: 12px; background: #1b2430; border: 1px solid #2e3a48; border-radius: 4px; display: grid; font-size: 14px; }
+  .zoom span { padding: 2px 8px; text-align: center; }
+
+  /* Donate */
+  .donate { display: flex; flex-direction: column; }
+  .donate p { margin: 0 0 24px 6px; font-size: 16px; }
+  .donate .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+  #qr { background: #fff; padding: 10px; border-radius: 2px; line-height: 0; }
+  .btn-donate { display: inline-block; background: var(--green); color: #fff; font-weight: 600; font-size: 14px; border: 0; border-radius: 2px; padding: 9px 0; width: 190px; text-align: center; cursor: pointer; }
+  .btn-donate:hover { filter: brightness(1.08); text-decoration: none; }
+  .cfg-warn { font-size: 12px; color: #f0b44a; text-align: center; max-width: 280px; }
+  #paypal-sdk-container { display: none; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 400; padding: 8px 8px 10px; }
+  td { padding: 10px 8px; }
+  td:last-child, th:last-child { width: 40%; }
+  .tabs { margin: 0 0 12px 4px; font-size: 16px; }
+  .tabs .on { color: var(--green); }
+  .tabs .sep { margin: 0 10px; color: var(--muted); }
+  .view-all { display: inline-block; margin: 12px 0 0 8px; font-size: 14px; }
+
+  /* Charts */
+  .chart svg { width: 100%; height: 230px; display: block; }
+  .chart text { fill: var(--text); font-size: 10px; font-family: Inter, sans-serif; }
+  .chart .xl { font-weight: 600; }
+
+  @media (max-width: 1000px) { .row-top, .row-3 { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) {
+    header { padding: 16px; gap: 16px; } header h1 { font-size: 28px; }
+    nav { gap: 16px; } nav a { font-size: 14px; }
+    main { padding: 0 16px 24px; } .map { min-height: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PSK Reporter</h1>
+  <nav>
+    <a href="#" class="active">OVERVIEW</a>
+    <a href="#">MAP</a>
+    <a href="#">DEVELOPER</a>
+    <a href="#">STATS</a>
+    <a href="#">FAQ</a>
+  </nav>
+</header>
+
+<main>
+  <!-- Map + Donate -->
+  <section class="row-top">
+    <div class="map" aria-label="Map placeholder">
+      <svg id="mapDots" preserveAspectRatio="none"></svg>
+      <div class="zoom"><span>+</span><span>−</span></div>
+      <div class="ph">Live reception map — placeholder</div>
+      <div class="legend">
+        <span style="--c:#3ddc6b">FT8</span>
+        <span style="--c:#3b8cff">WSPR</span>
+        <span style="--c:#f5e663">FT4</span>
+        <span style="--c:#9aa4a0">Other</span>
+      </div>
+    </div>
+
+    <div class="card donate">
+      <div class="card-head"><h2>Support PSK Reporter</h2><span class="kebab">⋮</span></div>
+      <p>Help keep PSK running.</p>
+      <div class="body">
+        <div id="qr" title="Scan to donate"></div>
+        <a id="donateBtn" class="btn-donate" href="#" target="_blank" rel="noopener">Donate</a>
+        <div id="paypal-sdk-container"></div>
+        <div id="cfgWarn" class="cfg-warn" hidden>Set <code>HOSTED_BUTTON_ID</code> in the PAYPAL config at the bottom of this file to activate donations.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tables (placeholders) -->
+  <section class="row-3">
+    <div class="card">
+      <div class="card-head"><h2>Top Monitors</h2><span class="range">Last 24 hours <span class="kebab">⋮</span></span></div>
+      <div class="tabs"><span class="on">By Reports</span><span class="sep">|</span><span>By Country</span></div>
+      <table><thead><tr><th>Call Sign</th><th>Reports</th></tr></thead><tbody id="tMonitors"></tbody></table>
+      <a class="view-all" href="#">View All Monitors</a>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Top Modes</h2><span class="range">Last 2 hours <span class="kebab">⋮</span></span></div>
+      <table><thead><tr><th>Modes</th><th>Reports</th></tr></thead><tbody id="tModes"></tbody></table>
+      <a class="view-all" href="#">View All Modes</a>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Equipment</h2><span class="range">Last 7 days <span class="kebab">⋮</span></span></div>
+      <table><thead><tr><th></th><th>Reports</th></tr></thead>
+        <tbody>
+          <tr><td>Icom</td><td>000,000</td></tr>
+          <tr><td>Yaesu</td><td>000,000</td></tr>
+          <tr><td>Kenwood</td><td>000,000</td></tr>
+          <tr><td>FlexRadio</td><td>000,000</td></tr>
+          <tr><td>Other</td><td>000,000</td></tr>
+        </tbody></table>
+      <a class="view-all" href="#">View All Equipment</a>
+    </div>
+  </section>
+
+  <!-- Charts (placeholder data) -->
+  <section class="card chart">
+    <div class="card-head"><h2>Reports per Hour</h2><span class="range">Last 7 days <span class="kebab">⋮</span></span></div>
+    <svg id="c1"></svg><a class="view-all" href="#">View Details</a>
+  </section>
+  <section class="card chart">
+    <div class="card-head"><h2>Active Monitors</h2><span class="range">Last 7 days <span class="kebab">⋮</span></span></div>
+    <svg id="c2"></svg><a class="view-all" href="#">View Details</a>
+  </section>
+  <section class="card chart">
+    <div class="card-head"><h2>Active Transmitters</h2><span class="range">Last 7 days <span class="kebab">⋮</span></span></div>
+    <svg id="c3"></svg><a class="view-all" href="#">View Details</a>
+  </section>
+</main>
+
+<!-- QR code generator (client-side, no data leaves the page) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+/* ============================================================
+   PAYPAL CONFIG — the only part you need to edit
+   ------------------------------------------------------------
+   HOSTED_BUTTON_ID : from paypal.com/donate/buttons (Business acct)
+   ENV              : 'sandbox' while testing, 'production' when live
+   MODE             : 'link'  = green button opens PayPal's hosted
+                                donation page in a new tab (simple,
+                                matches the mockup)
+                      'popup' = green button launches PayPal's
+                                Donate SDK pop-up over this page
+   ============================================================ */
+const PAYPAL = {
+  HOSTED_BUTTON_ID: 'YOUR_HOSTED_BUTTON_ID',
+  ENV: 'sandbox',
+  MODE: 'link'
+};
+
+(function initDonate() {
+  const configured = PAYPAL.HOSTED_BUTTON_ID && !PAYPAL.HOSTED_BUTTON_ID.startsWith('YOUR_');
+  const host = PAYPAL.ENV === 'production' ? 'https://www.paypal.com' : 'https://www.sandbox.paypal.com';
+  const donateUrl = `${host}/donate/?hosted_button_id=${encodeURIComponent(PAYPAL.HOSTED_BUTTON_ID)}`;
+  const btn = document.getElementById('donateBtn');
+
+  // QR always points to the hosted donation page (works on phones)
+  if (window.QRCode) {
+    new QRCode(document.getElementById('qr'), { text: donateUrl, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+  }
+
+  if (!configured) {
+    document.getElementById('cfgWarn').hidden = false;
+    btn.addEventListener('click', e => { e.preventDefault(); alert('PayPal hosted_button_id not configured yet.'); });
+    return;
+  }
+
+  btn.href = donateUrl;
+
+  if (PAYPAL.MODE === 'popup') {
+    // Load PayPal Donate SDK, render its (hidden) button, and let our green
+    // button trigger it. Falls back to the hosted link if the SDK fails.
+    const s = document.createElement('script');
+    s.src = 'https://www.paypalobjects.com/donate/sdk/donate-sdk.js';
+    s.charset = 'UTF-8';
+    s.onload = () => {
+      try {
+        PayPal.Donation.Button({
+          env: PAYPAL.ENV,
+          hosted_button_id: PAYPAL.HOSTED_BUTTON_ID,
+          image: {
+            src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif',
+            alt: 'Donate with PayPal button',
+            title: 'PayPal - The safer, easier way to pay online!'
+          },
+          onComplete: function (params) {
+            // params: tx, st, amt, cc, cm, item_number, item_name
+            console.log('PayPal donation complete', params);
+            btn.textContent = 'Thank you! 73';
+          }
+        }).render('#paypal-sdk-container');
+
+        btn.addEventListener('click', e => {
+          const sdkBtn = document.querySelector('#paypal-sdk-container img, #paypal-sdk-container input, #paypal-sdk-container button');
+          if (sdkBtn) { e.preventDefault(); sdkBtn.click(); }
+          // otherwise the href fallback opens the hosted page
+        });
+      } catch (err) { console.warn('Donate SDK failed, using link fallback', err); }
+    };
+    document.head.appendChild(s);
+  }
+})();
+
+/* ================= Placeholders below ================= */
+
+// Tables
+const rows = (id, n) => document.getElementById(id).innerHTML =
+  Array.from({ length: n }, () => '<tr><td>XXXXXX</td><td>000,000</td></tr>').join('');
+rows('tMonitors', 5); rows('tModes', 5);
+
+// Map dots — rough clusters (NA, EU, JA, AU, SA) for visual only
+(function mapDots() {
+  const svg = document.getElementById('mapDots');
+  svg.setAttribute('viewBox', '0 0 1000 500');
+  const colors = ['#3ddc6b', '#3ddc6b', '#3ddc6b', '#f5e663', '#3b8cff', '#9aa4a0'];
+  const clusters = [[200,150,90,50,160],[500,120,60,40,160],[800,160,30,30,40],[830,340,40,30,30],[330,330,40,50,25],[520,340,40,60,15],[680,220,50,30,25]];
+  let out = '';
+  for (const [cx, cy, rx, ry, n] of clusters) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random());
+      out += `<circle cx="${cx + Math.cos(a)*rx*r}" cy="${cy + Math.sin(a)*ry*r}" r="1.8" fill="${colors[i % colors.length]}" opacity=".85"/>`;
+    }
+  }
+  svg.innerHTML = out;
+})();
+
+// Line charts with fake data
+function lineChart(id, ticks, lo, hi) {
+  const svg = document.getElementById(id);
+  const W = 1000, H = 230, L = 50, R = 20, T = 12, B = 30;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  const y = v => T + (1 - (v - ticks[0]) / (ticks.at(-1) - ticks[0])) * (H - T - B);
+  const pts = Array.from({ length: 36 }, (_, i) => [L + 20 + i * (W - L - R - 40) / 35, lo + Math.random() * (hi - lo)]);
+  let s = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    <text x="${L - 6}" y="${y(t) - 3}" text-anchor="end">${fmt(t)}</text>`).join('');
+  s += `<polyline fill="none" stroke="var(--green)" stroke-width="1.6" vector-effect="non-scaling-stroke" points="${pts.map(p => `${p[0]},${y(p[1])}`).join(' ')}"/>`;
+  s += pts.filter((_, i) => i % 5 === 0 || i === 35).map(p => `<circle cx="${p[0]}" cy="${y(p[1])}" r="4" fill="var(--green)"/>`).join('');
+  ['Sept 16','Sept 17','Sept 18','Sept 19','Sept 20','Sept 21','Sept 22'].forEach((d, i) => {
+    s += `<text class="xl" x="${L + 40 + i * (W - L - R - 80) / 6}" y="${H - 8}" text-anchor="middle">${d}</text>`;
+  });
+  svg.innerHTML = s;
+}
+function fmt(v) { return v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? (v / 1e3) + 'K' : v; }
+lineChart('c1', [800000, 1000000, 1400000, 1800000, 2200000], 1000000, 2000000);
+lineChart('c2', [5000, 6500, 7000, 8000, 8500], 5200, 8400);
+lineChart('c3', [5000, 11000, 13000, 15000, 17000], 10500, 16500);
+</script>
+</body>
+</html>
