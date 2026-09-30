@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSKReporter — logo sample</title>
+
+<!-- Favicons -->
+<link rel="icon" href="../icons/favicon.ico" sizes="any">
+<link rel="icon" href="../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/app-icon-180.png">
+
+<!-- Outfit wordmark font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap">
+
+<style>
+  :root { --ink: #1A1210; --paper: #FAF7F2; --muted: #6B5E57; --line: #E7DED4; --red: #C4122A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Outfit, system-ui, sans-serif; background: var(--paper); color: var(--ink); }
+
+  /* ---- Header lockup ---- */
+  .site-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #fff; border-bottom: 1px solid var(--line); }
+  .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); }
+  .brand svg { width: 34px; height: auto; display: block; }
+  .wordmark { font-size: 28px; letter-spacing: -0.01em; line-height: 1; }
+  .wordmark b { font-weight: 700; }
+  .wordmark span { font-weight: 400; }
+  nav a { color: var(--ink); text-decoration: none; margin-left: 20px; font-size: 16px; }
+  nav a:hover { color: var(--red); }
+
+  /* ---- Pulsing arcs (inline SVG) ---- */
+  .psk-arc { animation: psk-pulse 2.4s ease-in-out infinite; }
+  .psk-arc.outer { animation-delay: 0.35s; }
+  @keyframes psk-pulse { 0%, 100% { opacity: 1; } 45% { opacity: 0.15; } }
+  @media (prefers-reduced-motion: reduce) { .psk-arc { animation: none; } }
+
+  /* ---- Demo content ---- */
+  main { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+  h1 { font-size: 40px; margin: 0 0 8px; }
+  p.lede { color: var(--muted); font-size: 18px; margin: 0 0 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .card.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .card .label { font-size: 14px; color: var(--muted); }
+  .card.dark .label { color: #BCAEA4; }
+  .card img { max-width: 100%; height: auto; }
+  .hero-mark { width: 120px; }
+  .card.dark code { background: #3A2C27; color: #F3E9E0; }
+  code { font-size: 13px; background: #F1ECE5; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="#" aria-label="PSKReporter home">
+    <!-- Inline pulsing mark: inline SVG lets page CSS animate the arcs -->
+    <svg viewBox="16 11 168 225" aria-hidden="true">
+      <defs>
+        <linearGradient id="psk-hdr" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#8E0015"/><stop offset="0.45" stop-color="#D81E05"/>
+          <stop offset="0.78" stop-color="#F27A00"/><stop offset="1" stop-color="#FFB400"/>
+        </linearGradient>
+      </defs>
+      <path d="M100 232 L35 141.7 A80 80 0 1 1 165 141.7 Z" fill="url(#psk-hdr)"/>
+      <circle cx="100" cy="95" r="13" fill="#fff"/>
+      <g fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round">
+        <path class="psk-arc" d="M124 71 A34 34 0 0 1 124 119"/>
+        <path class="psk-arc" d="M76 71 A34 34 0 0 0 76 119"/>
+        <path class="psk-arc outer" d="M142.4 52.6 A60 60 0 0 1 142.4 137.4"/>
+        <path class="psk-arc outer" d="M57.6 52.6 A60 60 0 0 0 57.6 137.4"/>
+      </g>
+    </svg>
+    <span class="wordmark"><b>PSK</b><span>Reporter</span></span>
+  </a>
+  <nav><a href="#">Map</a><a href="#">Stats</a><a href="#">About</a><a href="#">Donate</a></nav>
+</header>
+
+<main>
+  <h1>Logo kit sample</h1>
+  <p class="lede">How each asset looks in a page. The header mark above is inline SVG with pulsing arcs.</p>
+
+  <div class="grid">
+    <div class="card">
+      <img class="hero-mark" src="../web/pskreporter-mark-pulse.svg" alt="PSKReporter">
+      <div class="label">Pulsing SVG as &lt;img&gt; — <code>web/pskreporter-mark-pulse.svg</code></div>
+    </div>
+    <div class="card">
+      <img class="hero-mark" src="../web/pskreporter-mark.svg" alt="PSKReporter">
+      <div class="label">Static SVG — <code>web/pskreporter-mark.svg</code></div>
+    </div>
+    <div class="card">
+      <img class="hero-mark" src="../web/pskreporter-mark-512.png" alt="PSKReporter">
+      <div class="label">PNG — <code>web/pskreporter-mark-512.png</code></div>
+    </div>
+    <div class="card">
+      <img src="../wordmark/pskreporter-lockup-dark.png" alt="PSKReporter" style="width: 260px">
+      <div class="label">Lockup PNG — <code>wordmark/pskreporter-lockup-dark.png</code></div>
+    </div>
+    <div class="card dark">
+      <img src="../wordmark/pskreporter-lockup-white.png" alt="PSKReporter" style="width: 260px">
+      <div class="label">On dark — <code>wordmark/pskreporter-lockup-white.png</code></div>
+    </div>
+    <div class="card">
+      <div style="display: flex; gap: 14px; align-items: flex-end">
+        <img src="../icons/icon-16.png" alt="" width="16" height="16">
+        <img src="../icons/icon-32.png" alt="" width="32" height="32">
+        <img src="../icons/icon-64.png" alt="" width="64" height="64">
+        <img src="../icons/app-icon-180.png" alt="" width="90" height="90" style="border-radius: 20px; border: 1px solid var(--line)">
+      </div>
+      <div class="label">Icons — <code>icons/</code></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
