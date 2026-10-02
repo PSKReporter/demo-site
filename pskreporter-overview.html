@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -57,7 +57,8 @@
   .btn-donate { display: inline-block; background: var(--green); color: #fff; font-weight: 600; font-size: 14px; border: 0; border-radius: 2px; padding: 9px 0; width: 190px; text-align: center; cursor: pointer; }
   .btn-donate:hover { filter: brightness(1.08); text-decoration: none; }
   .cfg-warn { font-size: 12px; color: #f0b44a; text-align: center; max-width: 280px; }
-  #paypal-sdk-container { display: none; }
+  #paypal-sdk-container { display: none; text-align: center; }
+  #paypal-sdk-container img, #paypal-sdk-container input[type=image] { width: 190px; height: auto; cursor: pointer; }
 
   /* Tables */
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -182,7 +183,10 @@
 const PAYPAL = {
   HOSTED_BUTTON_ID: '4WCKKDJJ3XZPG',
   ENV: 'production',
-  MODE: 'popup'
+  MODE: 'popup',
+  // Custom button image used by the SDK in popup mode. Must sit next to
+  // index.html in the repo. Set to '' to use PayPal's standard yellow button.
+  BUTTON_IMAGE: 'donate-button.png'
 };
 
 (function initDonate() {
@@ -205,35 +209,41 @@ const PAYPAL = {
   btn.href = donateUrl;
 
   if (PAYPAL.MODE === 'popup') {
-    // Load PayPal Donate SDK, render its (hidden) button, and let our green
-    // button trigger it. Falls back to the hosted link if the SDK fails.
+    // Load PayPal's Donate SDK and let it render its OWN visible button
+    // (with our green image). The SDK only opens its pop-up when the donor
+    // clicks that button directly, so we don't hide it or click it from code.
+    // If the SDK doesn't load or render, the green link button stays as a fallback.
+    const container = document.getElementById('paypal-sdk-container');
+    const showSdk = () => { container.style.display = 'block'; btn.style.display = 'none'; };
+
     const s = document.createElement('script');
     s.src = 'https://www.paypalobjects.com/donate/sdk/donate-sdk.js';
     s.charset = 'UTF-8';
     s.onload = () => {
       try {
+        const imgSrc = PAYPAL.BUTTON_IMAGE
+          ? new URL(PAYPAL.BUTTON_IMAGE, location.href).href   // SDK needs an absolute URL
+          : 'https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif';
         PayPal.Donation.Button({
           env: PAYPAL.ENV,
           hosted_button_id: PAYPAL.HOSTED_BUTTON_ID,
-          image: {
-            src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif',
-            alt: 'Donate with PayPal button',
-            title: 'PayPal - The safer, easier way to pay online!'
-          },
+          image: { src: imgSrc, alt: 'Donate with PayPal', title: 'Donate to PSK Reporter' },
           onComplete: function (params) {
             // params: tx, st, amt, cc, cm, item_number, item_name
             console.log('PayPal donation complete', params);
-            btn.textContent = 'Thank you! 73';
+            container.innerHTML = '<div class="btn-donate" style="cursor:default">Thank you! 73</div>';
           }
         }).render('#paypal-sdk-container');
 
-        btn.addEventListener('click', e => {
-          const sdkBtn = document.querySelector('#paypal-sdk-container img, #paypal-sdk-container input, #paypal-sdk-container button');
-          if (sdkBtn) { e.preventDefault(); sdkBtn.click(); }
-          // otherwise the href fallback opens the hosted page
+        // Swap in the SDK button once it has actually rendered something
+        const obs = new MutationObserver(() => {
+          if (container.children.length) { showSdk(); obs.disconnect(); }
         });
+        obs.observe(container, { childList: true, subtree: true });
+        if (container.children.length) showSdk();
       } catch (err) { console.warn('Donate SDK failed, using link fallback', err); }
     };
+    s.onerror = () => console.warn('Donate SDK blocked or failed to load, using link fallback');
     document.head.appendChild(s);
   }
 })();
